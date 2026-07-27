@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="File Vulnerabilities"
+        android:textColor="#FF00FF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/writeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create World-Readable File"
+        android:backgroundTint="#FF0000"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="24dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Path Traversal Test"
+        android:textColor="#AAAAAA"/>
+
+    <EditText
+        android:id="@+id/fileNameInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Filename (e.g. ../databases/VulnerableDB)"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#808080"/>
+
+    <Button
+        android:id="@+id/readButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Read File"
+        android:backgroundTint="#00FF00"
+        android:textColor="#000000"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Content:"
+        android:textColor="#00FF00"
+        android:layout_marginTop="16dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#222222"
+        android:padding="8dp">
+
+        <TextView
+            android:id="@+id/fileContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:fontFamily="monospace"/>
+    </ScrollView>
+
+</LinearLayout>

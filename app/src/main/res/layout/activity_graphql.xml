@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#121212"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="GraphQL Injection Demo"
+        android:textColor="#E91E63"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"/>
+
+    <EditText
+        android:id="@+id/inputGraphQLParams"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Username (e.g. alice)"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#AAAAAA"
+        android:backgroundTint="#E91E63"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnExecuteQuery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Execute Query"
+        android:backgroundTint="#C2185B"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="24dp"/>
+
+    <TextView
+        android:id="@+id/txtGraphQLResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Query preview will appear here..."
+        android:textColor="#DDDDDD"
+        android:textSize="14sp"
+        android:fontFamily="monospace"
+        android:background="#222222"
+        android:padding="8dp"/>
+
+</LinearLayout>
