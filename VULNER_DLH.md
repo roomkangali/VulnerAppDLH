@@ -126,19 +126,91 @@ This document provides a comprehensive technical reference for the vulnerability
 
 ---
 
+### 🧨 Deserialization, Reflection & Archive Handling (v2)
+
+#### 17. `insecure_deserialization`
+*   **Description:** Deserializing untrusted byte streams into Java objects.
+*   **Impact:** **Critical**. Object injection / gadget-chain Remote Code Execution.
+*   **Detection Logic:** Usage of `ObjectInputStream.readObject()` on data from an Intent/IPC with no `ObjectInputFilter`/allowlist.
+*   **Remediation:** Avoid Java serialization for untrusted data; use JSON with a schema, or set an `ObjectInputFilter` allowlist.
+
+#### 18. `unsafe_reflection`
+*   **Description:** Instantiating classes or invoking methods named by attacker-controlled strings.
+*   **Impact:** **High/Critical**. Reaching dangerous constructors / gadget classes (potential RCE).
+*   **Detection Logic:** `Class.forName()` / `Method.invoke()` / `ClassLoader.loadClass()` where the name comes from an Intent extra.
+*   **Remediation:** Map untrusted input to a fixed allowlist of permitted class names; never pass raw input to reflection APIs.
+
+#### 19. `zip_slip`
+*   **Description:** Extracting archive entries using their raw names without validating the destination path.
+*   **Impact:** **High**. Arbitrary file overwrite via `../` entry names (path traversal on extract).
+*   **Detection Logic:** `new File(targetDir, zipEntry.getName())` written out with no `getCanonicalPath()` prefix check.
+*   **Remediation:** Resolve each entry's canonical path and verify it starts with the target directory before writing.
+
+---
+
+### 🔗 Advanced IPC (v2)
+
+#### 20. `pending_intent_hijacking`
+*   **Description:** Creating a **mutable** `PendingIntent` wrapping an implicit Intent.
+*   **Impact:** **High**. Privilege escalation — a receiving app can redirect it and run with this app's identity.
+*   **Detection Logic:** `PendingIntent.getActivity/getService/getBroadcast` using `FLAG_MUTABLE` (or missing `FLAG_IMMUTABLE`) with an implicit base Intent.
+*   **Remediation:** Use `FLAG_IMMUTABLE`; if mutability is required, set an explicit component on the base Intent.
+
+#### 21. `fragment_injection`
+*   **Description:** An exported `PreferenceActivity` that accepts any fragment name from the caller.
+*   **Impact:** **High**. Loading arbitrary fragments / bypassing screens (historically RCE-adjacent).
+*   **Detection Logic:** A class `extends PreferenceActivity` whose `isValidFragment()` returns `true` (no allowlist).
+*   **Remediation:** Override `isValidFragment()` with a strict allowlist, or avoid `PreferenceActivity`.
+
+#### 22. `intent_redirection` 🆕
+*   **Description:** An exported component forwards a **nested, attacker-supplied Intent** without validation (confused deputy).
+*   **Impact:** **High**. Reaching this app's non-exported components or relaying granted URI permissions.
+*   **Detection Logic:** A nested Intent pulled from `getParcelableExtra(...)` is passed to `startActivity()/startService()/sendBroadcast()` with no target validation.
+*   **Remediation:** Validate the forwarded Intent's component/target against an allowlist, or set an explicit trusted component; check the caller's identity.
+
+#### 23. `strandhogg`
+*   **Description:** Task-affinity / launch-mode configuration that allows task hijacking.
+*   **Impact:** **High**. UI overlay / phishing by a malicious app sharing the task affinity.
+*   **Detection Logic:** Manifest activity with a custom `android:taskAffinity` + `android:launchMode="singleTask"` (or `allowTaskReparenting`) while exported.
+*   **Remediation:** Use the default per-app task affinity; avoid `singleTask`/reparenting for sensitive, exported activities.
+
+---
+
+### 🔑 Strings, Secrets & Storage (v2)
+
+#### 24. `hardcoded_secrets_xml`
+*   **Description:** Sensitive keys/tokens embedded in Android resource files (`strings.xml`).
+*   **Impact:** **Critical**. Trivially extractable from any released APK (`resources.arsc`).
+*   **Detection Logic:** Keyword + high-entropy scan of `res/values/strings.xml` (e.g. `AIza…`, `sk_live_…`, AWS secrets).
+*   **Remediation:** Keep secrets out of resources; use `BuildConfig`/NDK or (ideally) a backend proxy. Never ship secrets in the APK.
+
+---
+
 ## 🎯 Vulnerabilities in VulnAppDLH (Testbed)
 
-The **VulnAppDLH** application was built specifically to demonstrate the following subset of DLH rules:
+The **VulnAppDLH** application was built specifically to demonstrate the DLH rules below.
+Rows **1–7** are the original v1 modules; rows **8–15** are the **v2 testbed expansion**
+(the `File` column is the ground-truth answer key used by the Layer-2 golden test).
 
-| ID | Vulnerability Category | Implemented Rules | Description |
-| :-- | :--- | :--- | :--- |
-| **1** | **Hardcoded Secrets & Insecure Storage** | `hardcoded_secrets`<br>`insecure_storage` | Contains fake AWS Keys and saves plain-text credentials in SharedPreferences. |
-| **2** | **SQL Injection** | `sql_injection` | A Login page vulnerable to `' OR '1'='1` bypass. |
-| **3** | **WebView Exploits** | `webview_xss`<br>`insecure_webview` | A WebView that executes injected JavaScript and allows file access. |
-| **4** | **GraphQL Injection** | `graphql_injection` | A query builder that concatenates user input directly into the GraphQL string. |
-| **5** | **Insecure File Operations** | `path_traversal`<br>`insecure_file_permissions` | A file reader that accepts `../` to read system files (`/etc/hosts`). |
-| **6** | **Weak Crypto & Auth Bypass** | `insecure_random_number_generation`<br>`biometric_bypass` | Predictable session tokens (Time-based seed) and a bypassable Biometric check. |
-| **7** | **IPC & Exported Components** | `exported_components`<br>`intent_spoofing` | Private activities exposed publicly and a receiver that accepts mocked intents. |
+| ID | Vulnerability Category | Implemented Rules | File(s) | Description |
+| :-- | :--- | :--- | :--- | :--- |
+| **1** | **Hardcoded Secrets & Insecure Storage** | `hardcoded_secrets`<br>`insecure_storage` | `SecretsActivity` | Contains fake AWS Keys and saves plain-text credentials in SharedPreferences. |
+| **2** | **SQL Injection** | `sql_injection` | `SQLInjectionActivity` | A Login page vulnerable to `' OR '1'='1` bypass. |
+| **3** | **WebView Exploits** | `webview_xss`<br>`insecure_webview`<br>`webview_file_access` | `WebViewActivity` | A WebView that executes injected JavaScript and allows file access. |
+| **4** | **GraphQL Injection** | `graphql_injection` | `GraphQLInjectionActivity` | A query builder that concatenates user input directly into the GraphQL string. |
+| **5** | **Insecure File Operations** | `path_traversal`<br>`insecure_file_permissions` | `InsecureFileActivity` | A file reader that accepts `../` to read system files (`/etc/hosts`). |
+| **6** | **Weak Crypto & Auth Bypass** | `insecure_random_number_generation`<br>`biometric_bypass`<br>`universal_logic_flaw` | `CryptoActivity` | Predictable session tokens (Time-based seed) and a bypassable Biometric check. |
+| **7** | **IPC & Exported Components** | `exported_components`<br>`intent_spoofing`<br>`deeplink_hijack`<br>`webview_deeplink` | `AndroidManifest` | Private activities exposed publicly and a receiver that accepts mocked intents. |
+| **8** | **Insecure Deserialization** *(v2)* | `insecure_deserialization` | `DeserializationActivity` | `ObjectInputStream.readObject()` on attacker-supplied Intent bytes. |
+| **9** | **Unsafe Reflection** *(v2)* | `unsafe_reflection` | `ReflectionActivity` | `Class.forName()` on a class name taken from an Intent extra. |
+| **10** | **PendingIntent Hijacking** *(v2)* | `pending_intent_hijacking` | `PendingIntentActivity` | A `FLAG_MUTABLE` PendingIntent wrapping an implicit Intent. |
+| **11** | **Zip Slip** *(v2)* | `zip_slip` | `ZipSlipActivity` | Extracts `File(dir, entry.name)` with no canonical-path check. |
+| **12** | **Intent Redirection** *(v2)* 🆕 | `intent_redirection` | `IntentRedirectionActivity` | Forwards a nested Intent from `getParcelableExtra` via `startActivity` (confused deputy). |
+| **13** | **Fragment Injection** *(v2)* | `fragment_injection` | `FragmentInjectionActivity` | Exported `PreferenceActivity` with `isValidFragment()` returning `true`. |
+| **14** | **StrandHogg** *(v2)* | `strandhogg` | `AndroidManifest` (`HijackTargetActivity`) | Exported activity with custom `taskAffinity` + `launchMode="singleTask"`. |
+| **15** | **Hardcoded Secrets (XML)** *(v2)* | `hardcoded_secrets_xml` | `strings.xml` | `google_api_key` / `aws_secret_access_key` / `stripe_secret_key` in resources. |
+
+> **Not covered by this testbed:** `jetpack_compose_security` (requires Jetpack Compose — planned as a separate Compose app) and `deeplink_logic_bypass` (optional/plausible, not a required TP).
 
 ---
 
