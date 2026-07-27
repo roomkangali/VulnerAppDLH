@@ -72,6 +72,47 @@
             </intent-filter>
         </activity>
 
+        <!-- ================= v2 vulnerable modules ================= -->
+
+        <activity
+            android:name=".DeserializationActivity"
+            android:exported="true"
+            android:label="Insecure Deserialization" />
+
+        <activity
+            android:name=".ReflectionActivity"
+            android:exported="true"
+            android:label="Unsafe Reflection" />
+
+        <activity
+            android:name=".PendingIntentActivity"
+            android:exported="true"
+            android:label="PendingIntent Hijack" />
+
+        <activity
+            android:name=".ZipSlipActivity"
+            android:exported="true"
+            android:label="Zip Slip" />
+
+        <activity
+            android:name=".IntentRedirectionActivity"
+            android:exported="true"
+            android:label="Intent Redirection" />
+
+        <activity
+            android:name=".FragmentInjectionActivity"
+            android:exported="true"
+            android:label="Fragment Injection" />
+
+        <!-- VULNERABILITY: StrandHogg — exported + custom taskAffinity + singleTask
+             lets a malicious app with the same affinity hijack this task. -->
+        <activity
+            android:name=".HijackTargetActivity"
+            android:exported="true"
+            android:label="StrandHogg Target"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.attacker.hijack" />
+
         <receiver
             android:name=".SpoofableReceiver"
             android:exported="true">

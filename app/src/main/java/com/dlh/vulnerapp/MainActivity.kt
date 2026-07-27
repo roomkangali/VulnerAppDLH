@@ -36,7 +36,15 @@ class MainActivity : AppCompatActivity() {
             "Insecure Storage",
             "IPC Attacks",
             "Logic Flaws",
-            "GraphQL Injection"
+            "GraphQL Injection",
+            // v2 modules
+            "Insecure Deserialization",
+            "Unsafe Reflection",
+            "PendingIntent Hijack",
+            "Zip Slip",
+            "Intent Redirection",
+            "Fragment Injection",
+            "StrandHogg"
         )
         
         for (cat in categories) {
@@ -60,6 +68,13 @@ class MainActivity : AppCompatActivity() {
                     "Insecure Storage" -> startActivity(Intent(this, InsecureFileActivity::class.java))
                     "Logic Flaws" -> startActivity(Intent(this, CryptoActivity::class.java))
                     "GraphQL Injection" -> startActivity(Intent(this, GraphQLInjectionActivity::class.java))
+                    "Insecure Deserialization" -> startActivity(Intent(this, DeserializationActivity::class.java))
+                    "Unsafe Reflection" -> startActivity(Intent(this, ReflectionActivity::class.java))
+                    "PendingIntent Hijack" -> startActivity(Intent(this, PendingIntentActivity::class.java))
+                    "Zip Slip" -> startActivity(Intent(this, ZipSlipActivity::class.java))
+                    "Intent Redirection" -> startActivity(Intent(this, IntentRedirectionActivity::class.java))
+                    "Fragment Injection" -> startActivity(Intent(this, FragmentInjectionActivity::class.java))
+                    "StrandHogg" -> startActivity(Intent(this, HijackTargetActivity::class.java))
                     else -> Toast.makeText(this, "Module $cat coming soon!", Toast.LENGTH_SHORT).show()
                 }
             }
